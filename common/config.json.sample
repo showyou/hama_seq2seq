@@ -1,0 +1,6 @@
+{
+	"dbuser": "dbuser",
+	"dbpass": "password",
+	"dbhost": "host",
+	"db":	  "db"
+}
