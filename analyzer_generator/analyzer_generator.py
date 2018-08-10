@@ -3,6 +3,7 @@ import json
 import sys
 import re
 import model
+import decoder
 
 homepath = os.path.abspath(os.path.dirname(__file__)).rsplit("/",1)[0]
 exec_path = homepath
@@ -31,11 +32,14 @@ def parse_text(t):
 def analyze_generate():
     a = load_user_data(conf_path)
     dbSession = model.startSession(a)
+    dec = decoder.Decoder()    
+
     q = dbSession.query(model.Tweet)
     tq = q.filter(model.Tweet.isAnalyze < 2)[:10000]
     for t in tq:
         print(t.user, parse_text(t.text))
-
+        print(dec.decode(parse_text(t.text)))
+        
 
 if __name__ == '__main__':
     analyze_generate()

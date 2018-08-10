@@ -23,8 +23,8 @@ tf.app.flags.DEFINE_integer("batch_size", 4,
                             "Batch size to use during training.")
 tf.app.flags.DEFINE_integer("size", 256, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 2, "Number of layers in the model.")
-tf.app.flags.DEFINE_integer("in_vocab_size", 12500, "input vocabulary size.")
-tf.app.flags.DEFINE_integer("out_vocab_size", 12500, "output vocabulary size.")
+tf.app.flags.DEFINE_integer("in_vocab_size", 100000, "input vocabulary size.")
+tf.app.flags.DEFINE_integer("out_vocab_size", 100000, "output vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "./datas", "Data directory")
 tf.app.flags.DEFINE_string("train_dir", "./datas", "Training directory.")
 tf.app.flags.DEFINE_integer("max_train_data_size", 0,
@@ -91,20 +91,25 @@ class Decoder():
     def decode(self,text):
 
         sentence = self.wakati(text)
-        token_ids = data_utils.sentence_to_token_ids(sentence, self.in_vocab)
 
-        bucket_id = min([b for b in range(len(_buckets))
-                       if _buckets[b][0] > len(token_ids)])
+        try:
+            token_ids = data_utils.sentence_to_token_ids(sentence, self.in_vocab)
 
-        encoder_inputs, decoder_inputs, target_weights = self.model.get_batch(
-          {bucket_id: [(token_ids, [])]}, bucket_id)
+            bucket_id = min([b for b in range(len(_buckets))
+                           if _buckets[b][0] > len(token_ids)])
 
-        _, _, output_logits = self.model.step(self.sess, encoder_inputs, decoder_inputs,
-                                       target_weights, bucket_id, True)
+            encoder_inputs, decoder_inputs, target_weights = self.model.get_batch(
+              {bucket_id: [(token_ids, [])]}, bucket_id)
 
-        outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
+            _, _, output_logits = self.model.step(self.sess, encoder_inputs, decoder_inputs,
+                                           target_weights, bucket_id, True)
 
-        if data_utils.EOS_ID in outputs:
-            outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+            outputs = [int(np.argmax(logit, axis=1)) for logit in output_logits]
 
-        print("".join([self.rev_out_vocab[output] for output in outputs]))
+            if data_utils.EOS_ID in outputs:
+                outputs = outputs[:outputs.index(data_utils.EOS_ID)]
+
+            print("> ","".join([self.rev_out_vocab[output] for output in outputs]))
+        except Exception as ex:
+            print(type(ex), end="")
+            print(ex.args)
